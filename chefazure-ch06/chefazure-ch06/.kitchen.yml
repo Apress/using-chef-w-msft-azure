@@ -1,0 +1,27 @@
+---
+driver:
+  name: azurerm
+
+driver_config:
+  subscription_id: 'b6e7eee9-YOUR-GUID-HERE-03ab624df016'
+  location: 'West Europe'
+  machine_size: 'Standard_DS2'
+
+provisioner:
+  name: chef_zero
+
+platforms:
+  - name: windows2012-r2
+    driver_config:
+      image_urn: MicrosoftWindowsServer:WindowsServer:2012-R2-Datacenter:latest
+    transport:
+      name: winrm
+
+verifier:
+  name: inspec
+
+suites:
+  - name: default
+    run_list:
+      - recipe[chefazure-ch06::default]
+    attributes:

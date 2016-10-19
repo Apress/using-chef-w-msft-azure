@@ -1,0 +1,8 @@
+node_name "<%= Chef::Config[:node_name] %>"
+chef_server_url "<%= Chef::Config[:chef_server_url] %>"
+validation_client_name "<%= Chef::Config[:validation_client_name] %>"
+client_key "<%= Chef::Config[:client_key] %>"
+validation_key "<%= Chef::Config[:validation_key] %>"
+file_cache_path "/var/lib/jenkins/.chef"
+log_location "/dev/stdout"
+log_level :info

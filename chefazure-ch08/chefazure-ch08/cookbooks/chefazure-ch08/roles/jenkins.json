@@ -1,0 +1,13 @@
+{
+  "name": "jenkins",
+  "chef_type": "role",
+  "json_class": "Chef::Role",
+  "default_attributes": {
+  },
+  "description": "jenkins role",
+  "run_list": [
+    "recipe[chefazure-ch08::install_jenkins]"
+  ],
+  "env_run_lists" : {
+   }
+}

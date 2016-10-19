@@ -1,0 +1,193 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vnetLocation": {
+            "type": "string",
+            "defaultValue": "West US",
+            "allowedValues": [
+                "East US",
+                "West US",
+                "West Europe",
+                "East Asia",
+                "South East Asia"
+            ]
+        },
+        "storageName": {
+            "type": "string"
+        },
+        "storageType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_ZRS"
+            ]
+        },
+        "storageLocation": {
+            "type": "string",
+            "defaultValue": "West US",
+            "allowedValues": [
+                "East US",
+                "West US",
+                "West Europe",
+                "East Asia",
+                "South East Asia"
+            ]
+        },
+        "vmName": {
+            "type": "string"
+        },
+        "vmAdminUserName": {
+            "type": "string"
+        },
+        "vmAdminPassword": {
+            "type": "securestring"
+        },
+        "vmWindowsOSVersion": {
+            "type": "string",
+            "defaultValue": "2012-R2-Datacenter",
+            "allowedValues": [
+                "2008-R2-SP1",
+                "2012-Datacenter",
+                "2012-R2-Datacenter",
+                "Windows-Server-Technical-Preview"
+            ]
+        }
+    },
+    "variables": {
+        "vnetPrefix": "10.0.0.0/16",
+        "vnetSubnet1Name": "Subnet-1",
+        "vnetSubnet1Prefix": "10.0.0.0/24",
+        "vnetSubnet2Name": "Subnet-2",
+        "vnetSubnet2Prefix": "10.0.1.0/24",
+        "vmImagePublisher": "MicrosoftWindowsServer",
+        "vmImageOffer": "WindowsServer",
+        "vmOSDiskName": "vmOSDisk",
+        "vmVmSize": "Standard_D1",
+        "vmVnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'vnet')]",
+        "vmSubnetRef": "[concat(variables('vmVnetID'), '/subnets/', variables('vnetSubnet1Name'))]",
+        "vmStorageAccountContainerName": "vhds",
+        "vmNicName": "[concat(parameters('vmName'), 'NetworkInterface')]"
+    },
+    "resources": [
+        {
+            "name": "vnet",
+            "type": "Microsoft.Network/virtualNetworks",
+            "location": "[parameters('vnetLocation')]",
+            "apiVersion": "2015-05-01-preview",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "vnet"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('vnetPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('vnetSubnet1Name')]",
+                        "properties": {
+                            "addressPrefix": "[variables('vnetSubnet1Prefix')]"
+                        }
+                    },
+                    {
+                        "name": "[variables('vnetSubnet2Name')]",
+                        "properties": {
+                            "addressPrefix": "[variables('vnetSubnet2Prefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[parameters('storageName')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "location": "[parameters('storageLocation')]",
+            "apiVersion": "2015-05-01-preview",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "storage"
+            },
+            "properties": {
+                "accountType": "[parameters('storageType')]"
+            }
+        },
+        {
+            "name": "[variables('vmNicName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "location": "[parameters('vnetLocation')]",
+            "apiVersion": "2015-05-01-preview",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', 'vnet')]"
+            ],
+            "tags": {
+                "displayName": "vmNic"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('vmSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[parameters('vmName')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "location": "[parameters('vnetLocation')]",
+            "apiVersion": "2015-05-01-preview",
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageName'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('vmNicName'))]"
+            ],
+            "tags": {
+                "displayName": "vm"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('vmVmSize')]"
+                },
+                "osProfile": {
+                    "computername": "[parameters('vmName')]",
+                    "adminUsername": "[parameters('vmAdminUsername')]",
+                    "adminPassword": "[parameters('vmAdminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('vmImagePublisher')]",
+                        "offer": "[variables('vmImageOffer')]",
+                        "sku": "[parameters('vmWindowsOSVersion')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "vmOSDisk",
+                        "vhd": {
+                            "uri": "[concat('http://', parameters('storageName'), '.blob.core.windows.net/', variables('vmStorageAccountContainerName'), '/', variables('vmOSDiskName'), '.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('vmNicName'))]"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+}

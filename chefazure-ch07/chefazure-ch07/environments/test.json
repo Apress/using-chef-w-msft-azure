@@ -1,0 +1,23 @@
+{
+  "chef_type": "environment",
+  "name": "test",
+  "json_class": "Chef::Environment",
+  "description": "Test environment",
+  "cookbook_versions": {
+    "couchdb": "= 11.0.0",
+	  "my_cookbook": "= 1.2.0"
+  },
+  "default_attributes": {
+    "apache2": {
+      "listen_ports": [
+        "80",
+        "443"
+      ]
+    }
+  },
+  "override_attributes": {
+    "apache2": {
+      "min_spareservers ": "5"
+    }
+  }  
+}

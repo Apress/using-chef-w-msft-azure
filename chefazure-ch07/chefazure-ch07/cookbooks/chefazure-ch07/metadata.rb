@@ -1,0 +1,10 @@
+name 'chefazure-ch07'
+maintainer 'Stuart Preston'
+maintainer_email 'stuart@pendrica.com'
+license 'all_rights'
+description 'Installs/Configures chefazure-ch07'
+long_description 'Installs/Configures chefazure-ch07'
+version '0.1.0'
+
+depends 'mysql'
+depends 'apache2'
